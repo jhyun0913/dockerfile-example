@@ -5,7 +5,8 @@ services:
     networks:
       - mynet 
   web2:
-    image: 'eldejr/nginx'
+          #    image: 'eldejr/nginx'
+    image: 'eldejr/nginx:latest'
     networks:
       - mynet
   web3:
@@ -13,11 +14,13 @@ services:
     networks:
       - mynet
   web4:
-    image: 'eldejr/nginx'
+    image: 'eldejr/nginx:latest'
+          #    image: 'eldejr/nginx'
     networks:
       - mynet
   lb:
     image: 'loadbalancer:v0.3'
+          #    image: 'abhyuni/loadbalancer'
     volumes:
       - type: bind
         source: ./ubuntu_nginx_loadbalancer/nginx/sites-available
