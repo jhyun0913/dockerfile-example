@@ -1,0 +1,131 @@
+//Pipeline script
+pipeline {
+    agent any 
+    triggers {
+        githubPush()
+    }
+    options {
+        timestamps()
+    }
+    stages {
+        //실습 clone
+        stage('Github Clone & Checkout') {
+            steps {
+                //해당 git repository branch
+                git branch: 'docker',
+                //Dockerfile이 있는 git repository URL 주소
+                //jenkins->Credentials에서 설정한 docker-hub의 credentialsId
+                    url: 'https://github.com/jhyun0913/jenkins-cicd.git',
+                    credentialsId: 'github-jenkins-cicd'
+            }
+        }
+        //실습 bulid
+        stage('Docker Build') {
+            steps {
+                script {
+                    //Docker hub에 로그인 하기 위해 사용
+                    docker.withRegistry('https://index.docker.io/v1/','docker-hub') {
+                        //Dockerfile로 이미지 생성
+                        docker.build('eldejr/jenkins-test','./docker/') 
+                    }
+                }
+            }
+        }
+        //실습 push
+        stage('Docker Image Push') {
+            steps {
+                script {
+                    //Docker hub에 로그인 하기 위해 사용
+                    docker.withRegistry('https://index.docker.io/v1/','docker-hub') {
+                        def img=docker.image('eldejr/jenkins-test')
+                        img.push('latest')
+                        img.push('0.1')
+                    }
+                }
+            }
+        }
+
+        //apache2 clone
+        stage('Github Clone & Checkout') {
+            steps {
+                git branch: 'main', 
+                    url: 'https://github.com/jhyun0913/dockerfile-example.git',
+                    credentialsId: 'github-jenkins-cicd'
+            }
+        }
+        //apache2 Build
+        stage('Docker Build') {
+            steps {
+                script {
+                    //Docker hub에 로그인 하기 위해 사용
+                    docker.withRegistry('https://index.docker.io/v1/','docker-hub') {
+                        //Dockerfile로 이미지 생성
+                        docker.build('eldejr/jenkins-apache2-test','./docker_project/ubuntu_apache2/') 
+                    }
+                }
+            }
+        }
+
+        //apache2 Image push
+        stage('Docker Image Push') {
+            steps {
+                script {
+                    //Docker hub에 로그인 하기 위해 사용
+                    docker.withRegistry('https://index.docker.io/v1/','docker-hub') {
+                        def img=docker.image('eldejr/jenkins-apache2-test')
+                        img.push('latest')
+                        img.push('0.1')
+                    }
+                }
+            }
+        }
+
+
+        //nginx clone
+        stage('Github Clone & Checkout') {
+            steps {
+                git branch: 'main', 
+                    url: 'https://github.com/jhyun0913/dockerfile-example.git',
+                    credentialsId: 'github-jenkins-cicd'
+            }
+        }
+        //nginx Build
+        stage('Docker Build') {
+            steps {
+                script {
+                    //Docker hub에 로그인 하기 위해 사용
+                    docker.withRegistry('https://index.docker.io/v1/','docker-hub') {
+                        //Dockerfile로 이미지 생성
+                        docker.build('eldejr/jenkins-nginx-test','./docker_project/ubuntu_nginx/') 
+                    }
+                }
+            }
+        }
+
+        //nginx Image push
+        stage('Docker Image Push') {
+            steps {
+                script {
+                    //Docker hub에 로그인 하기 위해 사용
+                    docker.withRegistry('https://index.docker.io/v1/','docker-hub') {
+                        def img=docker.image('eldejr/jenkins-nginx-test')
+                        img.push('latest')
+                        img.push('0.1')
+                    }
+                }
+            }
+        }
+
+    }
+    post {
+        cleanup {
+            emailext subject: '$DEFAULT_SUBJECT',
+                     to: 'jhyun913@gmail.com',
+                     body: '$DEFAULT_CONTENT'
+            cleanWs() //작업영역 삭제
+        }
+    }
+}
+
+
+
